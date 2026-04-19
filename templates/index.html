@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Secure Chat App</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>🔐 Secure Chat</h2>
+
+    <p id="status">Users Online: 0</p>
+
+    <input id="username" placeholder="Enter your name" />
+
+    <div id="chat-box">
+        <ul id="messages">
+            {% for m in messages %}
+                <li>{{ m }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <input id="msg" placeholder="Type message..." />
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+    var socket = io();
+
+    function sendMessage() {
+        let username = document.getElementById("username").value;
+        let msg = document.getElementById("msg").value;
+
+        if (username === "" || msg === "") return;
+
+        socket.send(username + ": " + msg);
+        document.getElementById("msg").value = "";
+    }
+
+    socket.on('message', function(msg) {
+        let li = document.createElement("li");
+        li.innerText = msg;
+
+        let messages = document.getElementById("messages");
+        messages.appendChild(li);
+
+        // Auto-scroll to latest message
+        messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on('user_count', function(count) {
+        document.getElementById("status").innerText = "Users Online: " + count;
+    });
+
+    // Send message on Enter key
+    document.getElementById("msg").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            sendMessage();
+        }
+    });
+</script>
+
+</body>
+</html>
